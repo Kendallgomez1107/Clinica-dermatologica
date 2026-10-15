@@ -1,6 +1,6 @@
 // ===== CONFIGURACIÓN =====
 // Pega aquí la URL de tu Apps Script (termina en /exec). Vacío = modo demo (datos en este navegador).
-const API_URL = '';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw9J9-pvw9U5ZwAt6z8kZcbb3kkfBkuk_ou1NPnRgl3eKwpGYAsxdvqRXnkJBGmkAGBjw/exec';
 
 const CATS = ['Cremas','Sueros','Protectores solares','Limpiadores','Otros'];
 const SCH = {
