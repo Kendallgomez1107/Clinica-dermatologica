@@ -7,10 +7,10 @@ const SCH = {
   inventario: [['nombre','Producto'],['categoria','Categoría','sel',CATS],['proveedor','Proveedor'],['lote','Lote'],['cantidad','Stock','number'],['minimo','Stock mínimo','number'],['vencimiento','Vencimiento','date'],['costo','Precio de compra (proveedor)','number'],['precio','Precio de venta (clínica)','number']],
   descartes:  [['pid','Producto','inv'],['cantidad','Cantidad retirada','number'],['motivo','Motivo','sel',['Vencido','Dañado','Muestra','Otro']],['fecha','Fecha','date'],['responsable','Responsable'],['perdida','Pérdida','calc']],
   pacientes:  [['nombre','Nombre'],['telefono','Teléfono','tel'],['correo','Correo','email'],['notas','Notas dermatológicas (alergias, tipo de piel)','area'],['proximo','Próximo control','date']],
-  visitas: [['fecha','Fecha','date'],['paciente_id','Paciente','pac'],['pid','Producto usado o vendido','inv'],['cantidad','Cantidad','number'],['notas','Notas','area'],['total','Total vendido','calc'],['costo','Costo','calc'],['ganancia','Ganancia','calc']],
+  visitas: [['fecha','Fecha','date'],['paciente_id','Paciente (o venta directa)','pac'],['cliente','Nombre del cliente (opcional)'],['pid','Producto usado o vendido','inv'],['cantidad','Cantidad','number'],['notas','Notas','area'],['total','Total vendido','calc'],['costo','Costo','calc'],['ganancia','Ganancia','calc']],
   compras: [['fecha','Fecha de recepción','date'],['pid','Producto','inv'],['proveedor','Proveedor'],['lote','Lote'],['cantidad','Cantidad recibida','number'],['vencimiento','Vencimiento del lote','date'],['costo','Precio de compra (por unidad)','number'],['total','Total de la compra','calc']]
 };
-const TITLES = {panel:'Panel general',inventario:'Inventario y vencimientos',descartes:'Descartes y mermas',pacientes:'Pacientes',visitas:'Visitas y productos',compras:'Compras y recepción de mercancía'};
+const TITLES = {panel:'Panel general',inventario:'Inventario y vencimientos',descartes:'Descartes y mermas',pacientes:'Pacientes',visitas:'Visitas y ventas',compras:'Compras y recepción de mercancía'};
 const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const off = n => iso(new Date(Date.now()+n*864e5));
 const toast = (m, bad, act) => {
@@ -121,7 +121,7 @@ async function save(t, row, quiet){
     return toast(n > 1 ? 'Registrado en '+n+' lotes (primero el que vence antes)' : 'Registro agregado');
   }
   const isNew = !row.id; if (isNew) row.id = 'r'+Date.now()+Math.random().toString(36).slice(2,6);
-  if (t === 'visitas'){ const pa = S.pacientes.find(x => x.id === row.paciente_id); row.paciente = pa ? pa.nombre : ''; }
+  if (t === 'visitas'){ const pa = S.pacientes.find(x => x.id === row.paciente_id), cli = String(row.cliente || '').trim(); row.paciente = pa ? pa.nombre : (cli ? 'Venta directa · ' + cli : 'Venta directa'); if (!pa) row.paciente_id = ''; delete row.cliente; }
   if (t === 'compras'){
     const base = S.inventario.find(x => x.id === row.pid);
     if (!base) return toast('Elige un producto del inventario.', 1);
@@ -168,10 +168,10 @@ function render(){
   $('filters').innerHTML = tab === 'inventario' ? [['producto','Por producto'],['lote','Por lote']].map(([k,l]) => `<button data-v="${k}" class="chip ${view === k ? 'on' : ''}">${l}</button>`).join('') + '<span class="w-3"></span>' + [['todos','Todos',view === 'producto' ? G.length : inv.length],['vencidos','Vencidos',stats[1][1]],['porvencer','Por vencer',stats[2][1]],['bajo','Stock bajo',stats[3][1]]].map(([k,l,n]) => `<button data-f="${k}" class="chip ${flt === k ? 'on' : ''}">${l} · ${n}</button>`).join('') : '';
   const mes = today().slice(0,7), sm = a => a.filter(x => String(x.fecha).startsWith(mes)), sx = (a,k) => a.reduce((n,x) => n + (+x[k] || 0), 0);
   const card = (l,v) => `<div class="pd p-3"><div class="text-xs opacity-80">${l}</div><div class="text-2xl">${v}</div></div>`;
-  if (tab === 'visitas'){ const m = sm(S.visitas); $('sum').innerHTML = card('Ventas del mes',money(sx(m,'total'))) + card('Costo de lo entregado',money(sx(m,'costo'))) + card('Ganancia del mes',money(sx(m,'ganancia'))); }
+  if (tab === 'visitas'){ const m = sm(S.visitas); $('sum').innerHTML = card('Ventas del mes',money(sx(m,'total'))) + card('Costo de lo entregado',money(sx(m,'costo'))) + card('Ganancia del mes',money(sx(m,'ganancia'))) + card('Ventas directas del mes (sin paciente)',money(sx(m.filter(v => !v.paciente_id),'total'))); }
   if (tab === 'compras'){ const m = sm(S.compras); $('sum').innerHTML = card('Compras del mes',money(sx(m,'total'))) + card('Unidades recibidas este mes',sx(m,'cantidad')) + card('Compras registradas',S.compras.length); }
   if (tab === 'inventario' && view === 'producto') return renderGrouped();
-  const cols = SCH[tab].filter(c => c[0] !== 'historial');
+  const cols = SCH[tab].filter(c => c[0] !== 'historial' && c[0] !== 'cliente');
   const q = $('q').value.toLowerCase();
   let rows = S[tab].filter(r => JSON.stringify(r).toLowerCase().includes(q));
   if (tab === 'inventario') rows.sort((a,b) => String(a.vencimiento).localeCompare(String(b.vencimiento)));
@@ -221,17 +221,17 @@ function invOptions(row, t){
 }
 function openForm(t, row = {}){
   $('f').dataset.lock = ''; $('dlg').oncancel = null;
+  if (t === 'visitas' && row.id && !row.paciente_id && row.cliente === undefined) row = {...row, cliente: String(row.paciente || '').replace(/^Venta directa( · )?/, '')};
   if ((t === 'descartes' || t === 'visitas' || t === 'compras') && !S.inventario.length) return toast('Primero agrega productos al inventario.', 1);
-  if (t === 'visitas' && !S.pacientes.length) return toast('Primero agrega un paciente.', 1);
   if ((t === 'descartes' || t === 'visitas' || t === 'compras') && !row.id) row = {fecha: today(), ...row};
   $('f').innerHTML = `<h3 class="font-serif text-xl">${row.id ? 'Editar' : 'Nuevo'}: ${TITLES[t].toLowerCase()}</h3>` +
     SCH[t].map(([k,l,ty,opt]) => {
       if (ty === 'calc') return ''; const v = esc(row[k]); let inp;
       if (ty === 'sel') inp = `<select name="${k}" class="${IN}">${opt.map(o => `<option ${o === row[k] ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
       else if (ty === 'inv') inp = `<select name="${k}" required class="${IN}">${invOptions(row, t)}</select>`;
-      else if (ty === 'pac') inp = `<select name="${k}" required class="${IN}">${S.pacientes.map(p => `<option value="${p.id}" ${p.id === row.paciente_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>`;
+      else if (ty === 'pac') inp = `<select name="${k}" class="${IN}"><option value="">Venta directa (sin paciente)</option>${S.pacientes.map(p => `<option value="${p.id}" ${p.id === row.paciente_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>`;
       else if (ty === 'area') inp = `<textarea name="${k}" rows="3" class="${IN}">${v}</textarea>`;
-      else inp = `<input name="${k}" type="${ty || 'text'}" value="${v}" ${ty === 'number' ? 'min="0" step="any"' : ''} ${['tel','email'].includes(ty) || ['costo','precio','proximo','proveedor'].includes(k) ? '' : 'required'} class="${IN}">`;
+      else inp = `<input name="${k}" type="${ty || 'text'}" value="${v}" ${ty === 'number' ? 'min="0" step="any"' : ''} ${['tel','email'].includes(ty) || ['costo','precio','proximo','proveedor','cliente'].includes(k) ? '' : 'required'} class="${IN}">`;
       return `<label class="block text-sm font-medium">${l}${inp}</label>`;
     }).join('') +
     (t === 'inventario' ? '<p id="gan" class="text-sm font-medium rounded-lg bg-[#fff4f7] text-[#4A1626] px-3 py-2"></p>' : '') +
@@ -246,6 +246,11 @@ function openForm(t, row = {}){
       $('gan').innerHTML = (c === '' || p === '') ? 'Escribe el precio de compra y de venta para ver la ganancia.' : (g => `Ganancia por unidad: <b class="${g < 0 ? 'text-red-700' : 'text-emerald-700'}">${money(g)}</b>${+p ? ` · Margen: <b>${(g / +p * 100).toFixed(0)} %</b>` : ''}`)(+p - +c); };
     $('f').oninput = upd; upd();
   } else $('f').oninput = null;
+  if (t === 'visitas'){
+    const pf = $('f').elements.paciente_id, cl = $('f').elements.cliente.closest('label');
+    const tog = () => { cl.hidden = !!pf.value; if (pf.value) $('f').elements.cliente.value = ''; };
+    pf.onchange = tog; tog();
+  }
   $('f').onsubmit = async e => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData($('f')));
@@ -285,7 +290,7 @@ function printReport(m){
   const cel = 'style="padding:5px;border-bottom:1px solid #ddd;text-align:left"';
   const tabla = (head, filas) => `<table style="width:100%;border-collapse:collapse;font:13px Arial;margin-bottom:18px"><tr>${head.map(h => `<th style="padding:5px;border-bottom:2px solid #4A1626;text-align:left">${h}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map(c => `<td ${cel}>${esc(c)}</td>`).join('')}</tr>`).join('') || `<tr><td ${cel} colspan="${head.length}">Sin registros</td></tr>`}</table>`;
   const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana. Permite ventanas emergentes.', 1);
-  w.document.write(`<title>Reporte ${m}</title><body style="font-family:Arial;color:#4A1626;max-width:780px;margin:24px auto"><h2 style="margin:0">Dra. Linda Gómez Icaza · Reporte de ${m}</h2><p>Descartes: <b>${sum(ds,'cantidad')}</b> unidades · Pérdida: <b>${money(sum(ds,'perdida'))}</b> · Visitas: <b>${vs.length}</b> · Productos entregados en visitas: <b>${money(sum(vs,'total'))}</b> · Ganancia de visitas: <b>${money(sum(vs,'ganancia'))}</b> · Compras: <b>${money(sum(cs,'total'))}</b></p><h3>Por motivo</h3>${tabla(['Motivo','Unidades','Pérdida'], Object.entries(por).map(([k,o]) => [k, o.u, money(o.p)]))}<h3>Detalle de descartes</h3>${tabla(['Fecha','Producto','Cantidad','Motivo','Pérdida'], ds.sort((a,b) => String(a.fecha).localeCompare(String(b.fecha))).map(d => [d.fecha, d.producto, d.cantidad, d.motivo, money(d.perdida)]))}`);
+  w.document.write(`<title>Reporte ${m}</title><body style="font-family:Arial;color:#4A1626;max-width:780px;margin:24px auto"><h2 style="margin:0">Dra. Linda Gómez Icaza · Reporte de ${m}</h2><p>Descartes: <b>${sum(ds,'cantidad')}</b> unidades · Pérdida: <b>${money(sum(ds,'perdida'))}</b> · Visitas y ventas: <b>${vs.length}</b> · Productos entregados o vendidos: <b>${money(sum(vs,'total'))}</b> · Ganancia de visitas y ventas: <b>${money(sum(vs,'ganancia'))}</b> · Compras: <b>${money(sum(cs,'total'))}</b></p><h3>Por motivo</h3>${tabla(['Motivo','Unidades','Pérdida'], Object.entries(por).map(([k,o]) => [k, o.u, money(o.p)]))}<h3>Detalle de descartes</h3>${tabla(['Fecha','Producto','Cantidad','Motivo','Pérdida'], ds.sort((a,b) => String(a.fecha).localeCompare(String(b.fecha))).map(d => [d.fecha, d.producto, d.cantidad, d.motivo, money(d.perdida)]))}`);
   w.document.close(); w.print();
 }
 $('filters').onclick = e => { if (e.target.dataset.f){ flt = e.target.dataset.f; render(); } if (e.target.dataset.v){ view = e.target.dataset.v; render(); } };
