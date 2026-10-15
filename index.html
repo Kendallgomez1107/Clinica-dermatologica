@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Dra. Linda Gómez Icaza · Gestión</title>
+<link rel="icon" href="imagenes/logo.jpg">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Marcellus&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head>
+<body class="md:flex min-h-screen">
+<aside class="md:w-52 p-3 md:p-4 flex md:flex-col gap-3 items-center md:items-stretch md:sticky md:top-0 md:h-screen">
+  <img src="imagenes/logo.jpg" alt="Dra. Linda Gómez Icaza, dermatóloga" class="h-12 md:h-auto md:w-full rounded-lg md:mb-4">
+  <nav id="nav" class="flex md:flex-col gap-1 overflow-x-auto flex-1 md:flex-none">
+    <button data-t="panel">▦ Panel</button>
+    <button data-t="inventario">▤ Inventario</button>
+    <button data-t="compras">⬒ Compras</button>
+    <button data-t="descartes">↘ Descartes</button>
+    <button data-t="pacientes">☺ Pacientes</button>
+    <button data-t="visitas">✚ Visitas</button>
+  </nav>
+  <span id="mode" class="text-xs opacity-60 md:mt-auto"></span>
+</aside>
+<main class="flex-1 p-4 md:p-6 min-w-0">
+  <div class="flex flex-wrap gap-2 mb-4 items-center">
+    <h2 id="title" class="text-3xl mr-auto"></h2>
+    <input id="q" type="search" aria-label="Buscar" placeholder="Buscar…" class="rounded-lg px-3 py-2 bg-white text-[#4A1626] shadow-sm">
+    <button id="order" class="px-4 py-2 rounded-lg border border-[#4A1626]/25 text-[#4A1626] bg-white font-medium">Pedido sugerido</button>
+    <button id="expire" class="px-4 py-2 rounded-lg border border-[#991b1b] text-[#991b1b] bg-white font-medium">Retirar vencidos</button>
+    <button id="report" class="px-4 py-2 rounded-lg border border-[#4A1626]/25 text-[#4A1626] bg-white font-medium">Reporte mensual</button>
+    <button id="quick" class="px-4 py-2 rounded-lg border border-[#B83B5A] text-[#B83B5A] bg-white font-medium">Registrar descarte</button>
+    <button id="xls" class="px-4 py-2 rounded-lg border border-[#4A1626]/25 text-[#4A1626] bg-white">Exportar Excel</button>
+    <label id="xlsLbl" class="px-4 py-2 rounded-lg border border-[#4A1626]/25 text-[#4A1626] bg-white cursor-pointer">Importar Excel<input id="xlsIn" type="file" accept=".xlsx,.xls" hidden></label>
+    <button id="add" class="px-4 py-2 rounded-lg bg-[#B83B5A] text-white font-semibold">Nuevo</button>
+  </div>
+  <div id="filters" class="flex flex-wrap gap-2 mb-3"></div>
+  <div id="sum" class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4"></div>
+  <div id="stats" class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4"></div>
+  <section id="panel" class="grid grid-cols-12 gap-4"></section>
+  <div id="tableView" class="pn !p-0 overflow-x-auto"><table id="tbl" class="w-full text-sm"></table></div>
+</main>
+<dialog id="dlg" class="rounded-xl p-0 w-full max-w-lg bg-white text-stone-800"><form id="f" class="p-5 space-y-3"></form></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="script.js"></script>
+</body></html>

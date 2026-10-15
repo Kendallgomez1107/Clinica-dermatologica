@@ -1,0 +1,32 @@
+:root{--rosa:#f4a0b3;--rosa-d:#b83b5a;--vino:#4a1626;--vino2:#6d2038;--blush:#fff4f7}
+/* Corrige el bug: Tailwind (grid/flex) anulaba el atributo hidden y se veía el panel en todas las pestañas */
+[hidden]{display:none!important}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#fde8ee;background-color:#3a1020;background-image:radial-gradient(900px 500px at 85% -10%,rgba(244,160,179,.22),transparent),radial-gradient(700px 400px at 0 100%,rgba(184,59,90,.35),transparent);background-attachment:fixed}
+aside{border-right:1px solid rgba(244,160,179,.18)}
+.pn{background:var(--blush);color:var(--vino);border-radius:16px;padding:1rem;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.pd{background:linear-gradient(160deg,var(--vino2),var(--vino));color:#fde8ee;border-radius:16px;padding:1rem;box-shadow:0 6px 20px rgba(0,0,0,.2),inset 0 0 0 1px rgba(244,160,179,.18)}
+button{cursor:pointer;transition:filter .15s,transform .15s,background .15s}
+button:hover{filter:brightness(1.06)}button:active{transform:scale(.97)}
+nav button{padding:.6rem .85rem;border-radius:.6rem;text-align:left;font-size:.95rem;white-space:nowrap;color:#f6c6d1}
+nav button:hover{background:rgba(244,160,179,.18)}
+nav button.on{background:var(--rosa);color:var(--vino);font-weight:600}
+.chip{padding:.35rem .8rem;border-radius:999px;font-size:.85rem;background:rgba(255,244,247,.1);color:#fde8ee;border:1px solid rgba(244,160,179,.3)}
+.chip.on{background:var(--rosa);color:var(--vino);font-weight:600;border-color:var(--rosa)}
+table{border-collapse:collapse}
+th{text-align:left;padding:.7rem .85rem;background:rgba(74,22,38,.08);font-weight:600;white-space:nowrap;font-size:.8rem;letter-spacing:.02em}
+td{padding:.65rem .85rem;border-top:1px solid rgba(74,22,38,.1);vertical-align:top}
+tbody tr:hover{background:rgba(244,160,179,.2)}
+dialog{border:0;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+dialog[open]{animation:pop .18s ease}
+dialog::backdrop{background:rgba(35,8,18,.65);backdrop-filter:blur(2px)}
+#f input,#f select,#f textarea{margin-top:.25rem;border-color:#e5c6cf}
+#f :is(input,select,textarea):focus{outline:2px solid var(--rosa-d);border-color:transparent}
+.act{color:var(--rosa-d);margin-right:.3rem;font-weight:500;padding:.15rem .5rem;border-radius:6px}
+.act:hover{background:rgba(184,59,90,.12)}.act.del{color:#b91c1c}.act.del:hover{background:rgba(185,28,28,.1)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font-size:.75rem}
+.cal div{padding:.35rem 0;border-radius:6px;background:rgba(74,22,38,.07)}
+.toast{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);background:var(--vino2);color:#fff;padding:.65rem 1.1rem;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:50;animation:pop .2s ease}
+.toast.bad{background:#b91c1c}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+:focus-visible{outline:2px solid var(--rosa);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
