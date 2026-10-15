@@ -148,7 +148,7 @@ function render(){
   G = groups(); LOW = new Set(G.filter(g => g.low).map(g => g.key));
   const inv = S.inventario, ds = inv.filter(i => +i.cantidad > 0).map(i => days(i.vencimiento));
   const stats = [
-    ['Productos',G.length,'rose'],
+    ['Unidades en stock',G.reduce((n,g) => n + g.stock,0),'rose'],
     ['Vencidos',ds.filter(d => d !== null && d < 0).length,'red'],
     ['Vencen en 60 días o menos',ds.filter(d => d !== null && d >= 0 && d <= 60).length,'amber'],
     ['Bajo stock mínimo',G.filter(g => g.low).length,'orange'],
@@ -421,5 +421,7 @@ $('panel').onclick = e => {
 };
 $('panel').onchange = e => { if (e.target.dataset.tk !== undefined){ TK[+e.target.dataset.tk].done = e.target.checked; saveTK(); renderPanel(); } };
 
+load().then(() => setInterval(refresh, 60000));
+document.addEventListener('visibilitychange', refresh);
 load().then(() => setInterval(refresh, 60000));
 document.addEventListener('visibilitychange', refresh);
